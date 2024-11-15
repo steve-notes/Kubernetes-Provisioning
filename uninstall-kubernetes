@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+sudo kubeadm reset
+
+sudo rm -Rf /etc/cni/net.d
+
+sudo iptables -t nat -F 
+sudo iptables -t nat -X
+sudo iptables -F
+sudo iptables -X
