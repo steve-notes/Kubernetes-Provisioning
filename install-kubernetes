@@ -1,8 +1,6 @@
 #!/bin/bash
 
 
-# UPDATE & UPGRADE
-
 # Function to show a spinner for a given duration
 show_spinner() {
     duration=$1
@@ -89,14 +87,14 @@ step_12() {
 
 ## Function to change subnet custom-resource.yaml file
 f="custom-resources.yaml"
-os="192.168.0.0/16"
-ns="10.10.0.0/16"
+oldsubnet="192.168.0.0/16"
+mysubnet="10.10.0.0/16"
 
 change_subnet() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s|$os|$ns|g" "$f"
+        sed -i '' "s|$oldsubnet|$mysubnet|g" "$f"
     else
-        sed -i "s|$os|$ns|g" "$f"
+        sed -i "s|$oldsubnet|$mysubnet|g" "$f"
     fi
 
     cidr="cat $f | grep -a cidr | awk '{print \$NF}'"
@@ -208,7 +206,7 @@ sleep 0.2
 ## STEP 14
 echo "########## Step 14 : Initialize Kubernetes Cluster"
 show_spinner 2
-sudo kubeadm init --pod-network-cidr=10.10.0.0/16
+sudo kubeadm init --pod-network-cidr=$mysubnet
 
 
 ## Create Kube Config
@@ -218,6 +216,8 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 show_spinner 2
+
+
 
 ## INSTALING & CONFIGURE CALICO ##
 echo "Installing & Configure Calico.."
