@@ -16,4 +16,4 @@ For now, this script can only be used to provision the Master Node for Kubernete
 <br/>
 
 > [!NOTE]
-Please change the subnet in the global variable according to your subnet
+Please change the subnet in the global variable according to your subnet.
