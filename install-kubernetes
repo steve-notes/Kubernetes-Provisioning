@@ -96,10 +96,10 @@ change_subnet() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed -i '' "s|$os|$ns|g" "$f"
     else
-        sed -i `"s|$os|$ns|g"` "$f"
+        sed -i "s|$os|$ns|g" "$f"
     fi
 
-    cidr=i"cat $f | grep -a cidr | awk '{print \$NF}'"
+    cidr="cat $f | grep -a cidr | awk '{print \$NF}'"
     o_cidr=$(eval "$cidr")
 
     if [[ "$o_cidr" == "$ns" ]]; then
