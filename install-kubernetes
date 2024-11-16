@@ -103,7 +103,7 @@ change_subnet() {
     cidr="cat $f | grep -a cidr | awk '{print \$NF}'"
     o_cidr=$(eval "$cidr")
 
-    if [[ "$o_cidr" == "$ns" ]]; then
+    if [[ "$o_cidr" == "$mysubnet" ]]; then
         echo "Change Subnet Success!"
     else
         echo "Change Subnet Failed!"
@@ -239,6 +239,17 @@ show_spinner 3
 echo "Installing Calico"
 kubectl apply -f $f 
 show_spinner 3
-echo "Verify Calico Installation"
+echo "### Restart containerd.service ###"
+sudo systemctl restart containerd.service
+show_spinner 1
+echo "##### Verify Calico Installation #####"
+show_spinner 10
 kubectl get pods -n calico-system
-echo "Done!!!"
+sleep 5 
+echo "Done Kubernetes Installed !!!"
+sleep 0.5
+echo "Print Kubeadm Token to join node"
+show_spinner 2
+kubeadm token create --print-join-command
+
+
