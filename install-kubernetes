@@ -111,6 +111,7 @@ change_subnet() {
     fi
 }
 
+# Function to Verify Calico Installation
 verify_calico() {
    for i in {1..10}; do
        clear
