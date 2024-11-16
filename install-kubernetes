@@ -90,7 +90,7 @@ step_12() {
 ## Function to change subnet custom-resource.yaml file
 f="custom-resources.yaml"
 os="192.168.0.0/16"
-ns="10.0.0.0/16"
+ns="10.10.0.0/16"
 
 change_subnet() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
