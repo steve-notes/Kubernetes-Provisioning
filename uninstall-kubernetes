@@ -1,11 +1,36 @@
 #!/bin/bash
 
+# Function Spinner
+show_spinner() {
+    duration=$1
+    spin='-\|/'
+    end=$((SECONDS + duration))
+
+    echo -n "Waiting..."
+    while [ $SECONDS -lt $end ]; do
+        for i in {0..3}; do
+            echo -ne "\b${spin:$i:1}"
+            sleep 0.1
+        done
+    done
+    echo -ne "\b"
+    echo " Done!"
+}
+
 
 sudo kubeadm reset
 
 sudo rm -Rf /etc/cni/net.d
+sudo rm -Rf $HOME/.kube
 
 sudo iptables -t nat -F 
 sudo iptables -t nat -X
 sudo iptables -F
 sudo iptables -X
+
+
+echo "##### Check Iptables Already Clean #####"
+show_spinner 3
+
+sudo iptables -t nat -L
+sudo iptables -L
