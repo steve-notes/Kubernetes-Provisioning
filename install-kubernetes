@@ -111,6 +111,13 @@ change_subnet() {
     fi
 }
 
+verify_calico() {
+   for i in {1..10}; do
+       clear
+       kubectl get pods -n calico-system 
+       sleep 1
+    done
+    }
 
 set -e
 
@@ -241,10 +248,11 @@ kubectl apply -f $f
 show_spinner 3
 echo "### Restart containerd.service ###"
 sudo systemctl restart containerd.service
-show_spinner 1
-echo "##### Verify Calico Installation #####"
 show_spinner 10
-timeout 10 watch -n 1 "kubectl get pods -n calico-system"
+echo "##### Verify Calico Installation #####"
+verify_calico
+show_spinner 2
+kubectl get node
 echo "Done Kubernetes Installed !!!"
 sleep 0.5
 echo "Print Kubeadm Token to join node"
