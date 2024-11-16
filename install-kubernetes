@@ -18,6 +18,13 @@ show_spinner() {
     echo " Done!"
 }
 
+
+# Global Variable
+f="custom-resources.yaml"
+oldsubnet="192.168.0.0/16"
+mysubnet="10.10.0.0/16"
+
+
 step_1() {
     sudo apt update && sudo apt upgrade 
 }
@@ -86,10 +93,6 @@ step_12() {
 
 
 ## Function to change subnet custom-resource.yaml file
-f="custom-resources.yaml"
-oldsubnet="192.168.0.0/16"
-mysubnet="10.10.0.0/16"
-
 change_subnet() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed -i '' "s|$oldsubnet|$mysubnet|g" "$f"
