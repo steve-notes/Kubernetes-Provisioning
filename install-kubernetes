@@ -251,13 +251,15 @@ echo "### Restart containerd.service ###"
 sudo systemctl restart containerd.service
 show_spinner 10
 echo "##### Verify Calico Installation #####"
+show_spinner 30
 verify_calico
 show_spinner 2
+echo "##### Calico Installed..!! #####"
 kubectl get node
-echo "Done Kubernetes Installed !!!"
 sleep 0.5
 echo "Print Kubeadm Token to join node"
 show_spinner 2
 kubeadm token create --print-join-command
+echo "Done Kubernetes Installed !!!"
 
 
