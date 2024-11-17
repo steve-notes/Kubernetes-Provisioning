@@ -339,18 +339,37 @@ deleteWorker() {
 local worker_node="$1"
 
 # Check if the node exists
-if kubectl get node "$worker_node" &>/dev/null; then
-    echo "Draining node: $worker_node"
-    kubectl drain "$worker_node" --ignore-daemonsets --delete-emptydir-data --force --grace-period=30
-    if [[ $? -eq 0 ]]; then
-        echo "Successfully drained $worker_node"
+    if kubectl get node "$worker_node" &>/dev/null; then
+
+# Drain the Node
+        echo "Draining node: $worker_node"
+        show_spinner 1
+        kubectl drain "$worker_node" --ignore-daemonsets --delete-emptydir-data --force --grace-period=30
+        if [[ $? -eq 0 ]]; then
+            show_spinner 1
+            echo "Successfully drained $worker_node"
+
+# Delete Node from the cluster
+        echo "Deleting node: $worker_node"
+        show_spinner 1
+        kubectl delete node "$worker_node"
+             if [[ $? -eq 0 ]]; then
+                 show_spinner 1
+                 echo "Successfully Deleted $worker_node"
+             else
+                 show_spinner 1
+                 echo "Failed to Delete $worker_node"
+                 exit 1
+             fi
+        else
+          show_spinner 1
+          echo "failed to drain $worker_node"
+          exit 1
+        fi
     else
-        echo "Failed to drain $worker_node"
+      echo "Error: Node $worker_node does not exist."
+      exit 1
     fi
-else
-    echo "Error: Node $worker_node does not exist."
-    exit 1
-fi
 
 }
 
