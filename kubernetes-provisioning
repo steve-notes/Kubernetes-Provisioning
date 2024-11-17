@@ -334,14 +334,42 @@ remove() {
   echo "##### IPTABLES Clean! #####"
 }
 
+deleteWorker() {
+
+# Get the node name from the command-line argument
+worker_node="$1"
+
+# Validate the argument
+if [[ -z "$worker_node" ]]; then
+    echo "Usage: $0 <node-name>"
+    exit 1
+fi
+
+# Check if the node exists
+if kubectl get node "$worker_node" &>/dev/null; then
+    echo "Draining node: $worker_node"
+    kubectl drain "$worker_node" --ignore-daemonsets --delete-emptydir-data --force --grace-period=30
+    if [[ $? -eq 0 ]]; then
+        echo "Successfully drained $worker_node"
+    else
+        echo "Failed to drain $worker_node"
+    fi
+else
+    echo "Error: Node $worker_node does not exist."
+    exit 1
+fi
+
+}
+
 ### Show Help Function ###
 show_help() {
     echo -e "Usage: Kubernetes-Provisioning [OPTIONS]\n"
     echo "Options:"
-    echo "  -h, --help      Show this help Message"
-    echo "  -m, --master    Installing Kubernetes Master Node"
-    echo "  -w, --worker    Installing Kubernetes  Worker Node"
-    echo "  -r, --remove    Completely Remove/uninstall Kubernetes"
+    echo "  -h, --help                  Show this help Message"
+    echo "  -m, --master                Installing Kubernetes Master Node"
+    echo "  -w, --worker                Installing Kubernetes  Worker Node"
+    echo "  -r, --remove                Completely Remove/uninstall Kubernetes"
+    echo "  -d <arg>, --delete <arg>    Delete Worker Node. (requires worker node name as an arguments)"
 }
 
 ### FLAG OPTIONS ###
@@ -365,6 +393,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         -r|--remove)
             remove
+            exit 0
+            ;;
+        -d|--delete)
+            deleteWorker
             exit 0
             ;;
         *)
