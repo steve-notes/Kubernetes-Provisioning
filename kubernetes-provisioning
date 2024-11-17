@@ -335,15 +335,8 @@ remove() {
 }
 
 deleteWorker() {
-
 # Get the node name from the command-line argument
-worker_node="$1"
-
-# Validate the argument
-if [[ -z "$worker_node" ]]; then
-    echo "Usage: $0 <node-name>"
-    exit 1
-fi
+local worker_node="$1"
 
 # Check if the node exists
 if kubectl get node "$worker_node" &>/dev/null; then
@@ -396,8 +389,15 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -d|--delete)
-            deleteWorker
-            exit 0
+            if [[ -z "$2" || "$2" =~ ^- ]]; then
+                # if no argument or next argument starts with a dash, show help function
+                echo "Error: requires a valid node name as an argument"
+                show_help
+                exit 1
+            else
+                deleteWorker "$2"
+                shift
+            fi
             ;;
         *)
             echo "Unknown Option: $1"
