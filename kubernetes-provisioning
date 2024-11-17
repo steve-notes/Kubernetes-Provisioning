@@ -1,0 +1,394 @@
+#!/bin/bash
+# File              : kubernetes-provisioning
+# License           : MIT
+# Author            : Steven Agustinus <steve87.notes@gmail.com>
+# Date              : 17.11.2024
+# Last Modified Date: 17.11.2024
+# Last Modified By  : Steven Agustinus <steve87.notes@gmail.com>
+
+# kubernetes-provisioning
+# Copyright (c) 2024 Steven Agustinus <steve87.notes@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+show_version() {
+    echo "Version : 1.0"
+}
+
+# Function to show a spinner for a given duration
+show_spinner() {
+    duration=$1
+    spin='-\|/'
+    end=$((SECONDS + duration))
+
+    echo -n "Waiting..."
+    while [ $SECONDS -lt $end ]; do
+        for i in {0..3}; do
+            echo -ne "\b${spin:$i:1}"  # Backspace and replace the last character
+            sleep 0.1
+        done
+    done
+    echo -ne "\b"  # Remove the spinner at the end
+    echo " Done!"
+}
+
+# Global Variables
+f="custom-resources.yaml"
+oldsubnet="192.168.0.0/16"
+mysubnet="10.10.0.0/16"
+
+step_1() {
+    echo "########## Step 1 : Updating the System ##########"
+    show_spinner 3
+    sudo apt update && sudo apt upgrade 
+    echo "Updating the System Success"
+    sleep 0.5
+}
+
+step_2() {
+    echo "########## Step 2: Disable Swap ##########"
+    show_spinner 1
+    sudo swapoff -a
+    sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+    echo "Disable Swap Success"
+    sleep 0.5
+}
+
+step_3() {
+    echo "########## Step 3: Add Kernel Parameters ########## "
+    show_spinner 1
+sudo tee /etc/modules-load.d/containerd.conf <<EOF
+    overlay
+    br_netfilter
+EOF
+    sudo modprobe overlay
+    sudo modprobe br_netfilter
+    echo "Add Kernel Parameters Success"
+    sleep 0.5
+}
+
+step_4() {
+    echo "########## Step 4: Configuring Kernel Parameters"
+    show_spinner 1
+sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+    net.ipv4.ip_forward = 1
+EOF
+    echo "Configuring Kernel Parameters Success"
+    sleep 0.5
+}
+
+step_5() {
+    echo "########## Step 5: Reload System ##########"
+    show_spinner 1
+    sudo sysctl --system
+    echo "System Reloaded!"
+    sleep 0.5
+}
+
+step_6() {
+    echo "########## Step 6: Install Containerd Runtime ##########"
+    show_spinner 2
+    sudo apt install -y curl gnupg2 software-properties-common \
+    apt-transport-https ca-certificates
+    echo "Install Containerd Runtime Success"
+    sleep 0.5
+}
+
+step_7() {
+    echo "########## Step 7: Enable Docker Repository ##########"
+    show_spinner 1
+    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/docker.gpg
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    echo "Docker Repository Enabled!"
+    sleep 0.5
+}
+
+step_8() {
+    echo "########## Step 8: Installing Containerd ##########"
+    show_spinner 2
+    sudo apt update
+    sudo apt install -y containerd.io
+    echo "Containerd Installed!"
+    sleep 0.5
+}
+
+step_9() {
+    echo "########## Step 9: Configuring Containerd as cgroup ##########" 
+    show_spinner 1
+    containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+    sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+    echo "Containerd configured as cgroup!"
+    sleep 0.5
+}
+
+step_10() {
+    echo "########## Step 10: Enabling the Containerd Service ##########"
+    show_spinner 1
+    sudo systemctl restart containerd
+    sudo systemctl enable containerd
+    echo "Containerd Service Enabled!"
+    sleep 0.3
+}
+
+step_11() {
+    echo "########## Step 11: Adding Apt Repository for Kubernetes ##########"
+    show_spinner 2
+    sudo apt update
+    sudo apt install -y apt-transport-https ca-certificates curl gpg
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    echo "APT Repository for Kubernetes added!!"
+    sleep 0.2
+}
+
+step_12() {
+    echo "########## Step 12: Installing Kubectl, Kubeadm, & Kubelet ##########"
+    show_spinner 2
+    sudo apt update
+    sudo apt install -y kubelet kubeadm kubectl
+    sudo apt-mark hold kubelet kubeadm kubectl
+    echo "Kubectl, Kubeadm, & Kubelet Installed!!"
+    sleep 0.2
+}
+
+step_13() {
+    echo "########## Step 13: Enabling Kubelet Service ##########"
+    show_spinner 1
+    sudo systemctl enable --now kubelet
+    echo "Kubelet Service Enabled!"
+    sleep 0.2
+ }
+
+step_14() {
+    echo "########## Step 14 : Initialize Kubernetes Cluster ##########"
+    show_spinner 2
+    sudo kubeadm init --pod-network-cidr=$mysubnet
+}
+
+step_15() {
+    echo "########## Creating Kube Config ##########"
+    show_spinner 2
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    show_spinner 2
+}
+
+## Function to change subnet custom-resource.yaml file
+change_subnet() {
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s|$oldsubnet|$mysubnet|g" "$f"
+    else
+        sed -i "s|$oldsubnet|$mysubnet|g" "$f"
+    fi
+
+    cidr="cat $f | grep -a cidr | awk '{print \$NF}'"
+    o_cidr=$(eval "$cidr")
+
+    if [[ "$o_cidr" == "$mysubnet" ]]; then
+        echo "Change Subnet Success!"
+    else
+        echo "Change Subnet Failed!"
+        exit
+    fi
+}
+
+## Function to Install & Configuring Calico
+install_configure_calico() {
+    echo "Installing & Configure Calico.."
+    show_spinner 2
+    echo "Install Operator on Cluster"
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.0/manifests/tigera-operator.yaml
+    show_spinner 2
+    echo "Downloading custom-resources"
+    show_spinner 1
+    curl https://raw.githubusercontent.com/projectcalico/calico/v3.29.0/manifests/custom-resources.yaml -O
+    echo "Custom Resource Downloaded"
+    show_spinner 2
+    echo "Changing Custom Resources Subnet"
+    change_subnet
+    show_spinner 3
+    echo "Installing Calico"
+    kubectl apply -f $f 
+    show_spinner 3
+    echo "Calico Installed!!"
+    sleep 0.5
+}
+
+# Function to Verify Calico Installation
+verify_calico() {
+   echo "##### Verify Calico Installation #####"
+   show_spinner 30
+
+     for i in {1..10}; do
+        clear
+        kubectl get pods -n calico-system 
+        sleep 1
+     done
+
+   show_spinner 2
+   echo "##### Calico Installed..!! #####"
+}
+
+restart_containerd() {
+    echo "### Restart containerd.service ###"
+    sudo systemctl restart containerd.service
+    show_spinner 10
+    sleep 0.5
+}
+
+verify_kubernetes_master() {
+    kubectl get node
+    sleep 0.5
+    echo "Print Kubeadm Token to join node"
+    show_spinner 2
+    echo -e "\n"
+    kubeadm token create --print-join-command
+    echo -e "\nDone Kubernetes Master Node Installed !!!"
+}
+####### END of Installing Function #####
+
+set -e
+
+########## SETUP KUBERNETES CLUSTER ##########
+
+##### Function Install Master Node #####
+master() {
+    step_1
+    step_2
+    step_3
+    step_4
+    step_5
+    step_6
+    step_7
+    step_8
+    step_9
+    step_10
+    step_11
+    step_12
+    step_13
+    step_14
+    step_15
+    install_configure_calico
+    restart_containerd
+    verify_calico
+    verify_kubernetes_master
+}
+
+##### Function Install Worker Node #####
+worker() {
+    step_1
+    step_2
+    step_3
+    step_4
+    step_5
+    step_6
+    step_7
+    step_8
+    step_9
+    step_10
+    step_11
+    step_12
+    step_13
+}
+
+##### Function Uninstalled Kubernetes Cluster #####
+remove() {
+  echo "##### Kubernetes Uninstall Process.. #####"
+  show_spinner 2
+  sudo kubeadm reset
+  sudo rm -Rf /etc/cni/net.d
+  sudo rm -Rf $HOME/.kube
+  echo "##### Kubernetes Uninstalled! #####"
+  sleep 0.5
+  echo "##### Cleanup IPTABLES #####"
+  show_spinner 2
+  sudo iptables -t nat -F 
+  sudo iptables -t nat -X
+  sudo iptables -F
+  sudo iptables -X
+  
+  sudo iptables -t nat -L
+  sudo iptables -L
+  echo "##### IPTABLES Clean! #####"
+}
+
+### Show Help Function ###
+show_help() {
+    echo -e "Usage: Kubernetes-Provisioning [OPTIONS]\n"
+    echo "Options:"
+    echo "  -h, --help      Show this help Message"
+    echo "  -m, --master    Installing Kubernetes Master Node"
+    echo "  -w, --worker    Installing Kubernetes  Worker Node"
+    echo "  -r, --remove    Completely Remove/uninstall Kubernetes"
+}
+
+### FLAG OPTIONS ###
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            show_version
+            exit 0
+            ;;
+        -m|--master)
+            master
+            exit 0
+            ;;
+        -w|--worker)
+            worker
+            exit 0
+            ;;
+        *)
+            echo "Unknown Option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+show_help
+exit 1
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
