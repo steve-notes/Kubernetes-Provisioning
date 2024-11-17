@@ -331,7 +331,8 @@ remove() {
   
   sudo iptables -t nat -L
   sudo iptables -L
-  echo "##### IPTABLES Clean! #####"
+  echo "IPTABLES Clean!"
+  echo -e "\nSuccessfully Uninstall Kubernetes "
 }
 
 deleteWorker() {
