@@ -309,6 +309,8 @@ worker() {
     step_11
     step_12
     step_13
+    show_spinner 2
+    echo "Worker Node Installation Success..!!"
 }
 
 ##### Function Uninstalled Kubernetes Cluster #####
