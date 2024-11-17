@@ -363,6 +363,10 @@ while [[ $# -gt 0 ]]; do
             worker
             exit 0
             ;;
+        -r|--remove)
+            remove
+            exit 0
+            ;;
         *)
             echo "Unknown Option: $1"
             show_help
