@@ -417,6 +417,7 @@ while [[ $# -gt 0 ]]; do
             else
                 deleteWorker "$2"
                 shift
+                exit 0
             fi
             ;;
         *)
