@@ -320,6 +320,7 @@ remove() {
   sudo kubeadm reset
   sudo rm -Rf /etc/cni/net.d
   sudo rm -Rf $HOME/.kube
+  sudo rm "$f"
   echo "##### Kubernetes Uninstalled! #####"
   sleep 0.5
   echo "##### Cleanup IPTABLES #####"
