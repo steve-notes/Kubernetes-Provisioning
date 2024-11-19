@@ -12,10 +12,11 @@ So, if you want to try installing the same Kubernetes version and use an Ubuntu 
 <br/>
 
 📌 <b>ToDo for Next Update :</b> 
-- [x] Join Installation & Uninstallation Script in one script only
-- [x] Adding flag for options 
-- [x] Adding function for provision Worker Node
-- [x] Adding function for drain and delete specific worker node
+- [x] Join Installation & Uninstallation Script in one script only.
+- [x] Adding flag for options. 
+- [x] Adding function for provision Worker Node.
+- [x] Adding function for drain and delete specific worker node.
+- [ ] Add file config for change subnet separated, so there's no need to change manually in main code.
 - [ ] Adding function for kubeadm init based on environment ( local vm or cloud )
 - [ ] Adding function for install kubernetes version
 - [ ] Adding dynamic input subnet for kubeadm init and calico custom-resources.yaml
