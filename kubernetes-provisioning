@@ -188,10 +188,10 @@ step_14() {
 gcp_init() {
     echo "########## Step 14 : Initialize Kubernetes Cluster ##########"
     show_spinner 2
-    sudo kubeadm init --pod-network-cidr=$mysubnet
-    # sudo kubeadm init --apiserver-cert-extra-sans=$gcp-ip \
-    # --pod-network-cidr=192.168.0.0/16 --control-plane-endpoint=$gcp_ip:6443 \
-    # --node-name masternode -v=9
+    #sudo kubeadm init --pod-network-cidr=$mysubnet
+     sudo kubeadm init --apiserver-cert-extra-sans=$gcp-ip \
+     --pod-network-cidr=192.168.0.0/16 --control-plane-endpoint=$gcp_ip:6443 \
+     --node-name masternode -v=9
 }
 
 step_15() {
@@ -327,6 +327,27 @@ worker() {
     echo "Worker Node Installation Success..!!"
 }
 
+gcp() {
+    step_1
+    step_2
+    step_3
+    step_4
+    step_5
+    step_6
+    step_7
+    step_8
+    step_9
+    step_10
+    step_11
+    step_12
+    step_13
+    gcp_init
+    step_15
+    install_configure_calico
+    restart_containerd
+    verify_calico
+    verify_kubernetes_master
+}
 ##### Function Uninstalled Kubernetes Cluster #####
 remove() {
   echo "##### Kubernetes Uninstall Process.. #####"
@@ -416,7 +437,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -g|--gcp)
-            gcp_init
+            gcp
             exit 0
             ;;
         -w|--worker)
