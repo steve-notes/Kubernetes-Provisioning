@@ -52,8 +52,7 @@ show_spinner() {
 f="custom-resources.yaml"
 oldsubnet="192.168.0.0/16"
 mysubnet="10.10.0.0/16"
-gcp-ip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip | awk -F'[a-zA-Z@:$ ]+' '{print $1}'
-)
+gcpip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip | awk -F'[a-zA-Z@:$ ]+' '{print $1}')
 
 step_1() {
     echo "########## Step 1 : Updating the System ##########"
@@ -189,8 +188,8 @@ gcp_init() {
     echo "########## Step 14 : Initialize Kubernetes Cluster ##########"
     show_spinner 2
     #sudo kubeadm init --pod-network-cidr=$mysubnet
-     sudo kubeadm init --apiserver-cert-extra-sans=$gcp-ip \
-     --pod-network-cidr=192.168.0.0/16 --control-plane-endpoint=$gcp_ip:6443 \
+     sudo kubeadm init --apiserver-cert-extra-sans=$gcpip \
+     --pod-network-cidr=$mysubnet --control-plane-endpoint=$gcpip:6443 \
      --node-name masternode -v=9
 }
 
@@ -369,6 +368,7 @@ remove() {
   sudo iptables -L
   echo "IPTABLES Clean!"
   echo -e "\nSuccessfully Uninstall Kubernetes "
+  sudo rm "$f"
 }
 
 deleteWorker() {
