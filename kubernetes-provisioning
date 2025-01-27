@@ -200,6 +200,7 @@ step_14() {
 }
 
 gcp_init() {
+
     gcpip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip | awk -F'[a-zA-Z@:$ ]+' '{print $1}')
     echo "########## Step 14 : Initialize Kubernetes Cluster ##########"
     show_spinner 2
