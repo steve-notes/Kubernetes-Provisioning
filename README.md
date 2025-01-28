@@ -23,7 +23,7 @@ So, if you want to try installing the same Kubernetes version and use an Ubuntu 
     - [x] Ubuntu
     - [x] Debian
     - [ ] Centos
-- [x] Support Kubernetes v1.32
+- [x] Support Kubernetes v1.32 (tested on Debian)
 
 <br/>
 <br/>
