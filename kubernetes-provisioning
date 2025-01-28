@@ -52,18 +52,19 @@ show_spinner() {
 f="custom-resources.yaml"
 oldsubnet="192.168.0.0/16"
 mysubnet="10.10.0.0/16"
+CURL_TIMEOUT=0.5
 
 
 #Checking Cloud Environment
 #check_cloud_env() {
-    ##GCP
-    #if curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ | grep -q "instance"; then
-        ##Retrive the External IP
-        #gcpip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip | awk -F'[a-zA-Z@:$ ]+' '{print $1}')
-        #echo "Run on GCP. GCP External IP : $gcpip"
-    #else
-        #gcpip="" 
-    #fi
+#    ##GCP
+#    if curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ | grep -q "instance"; then
+#        #Retrive the External IP
+#        gcpip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) | awk -F'[a-zA-Z@:$ ]+' '{print $1}'
+#        echo "Run on GCP. GCP External IP : $gcpip"
+#    else
+#        gcpip="" 
+#    fi
 #}
 
 ## call function check env
@@ -293,7 +294,9 @@ verify_kubernetes_master() {
     echo -e "\nDone Kubernetes Master Node Installed !!!"
 }
 
-
+check_gcp() {
+    curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ >/dev/null 2>&1
+}
 
 ####### END of Installing Function #####
 
@@ -316,13 +319,78 @@ master() {
     step_11
     step_12
     step_13
-    step_14
+    
+    # Logic environment checking
+    echo "Checking Environment.."
+    show_spinner 2
+    if curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ >/dev/null 2>&1 ; then
+        gcpip=$(curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
+        gcp_init
+        #echo "use GCP ip : $gcpip" #>> Debuging
+        #sleep 1
+        #echo "gcp_init"
+    else
+        step_14
+        #echo "not use GCP"
+        #echo "step_14"
+    fi
+
     step_15
     install_configure_calico
     restart_containerd
     verify_calico
     verify_kubernetes_master
+
+#TODO add waiting description to check environment
+   #echo "Checking environment..."
+   #show_spinner 2
+   #echo "next command"
+   ##check_gcp &
+   ##check_gcp_pid=$!
+
+   ##show_spinner 5 &
+   ##spinner_pid=$1
+   
+   ##if wait $check_gcp_pid; then
+        ##gcpip=$(curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
+        ##if [[ -n $gcpip ]]; then
+            ##kill $spinner_pid  
+            ##echo "Use GCP IP : $gcpip"
+        ##else
+            ##echo "Error Can't retrive GCP Config"
+        ##fi
+    ##else
+        ##echo -e "\nNot running on GCP"
+        ##show_spinner 1
+        ##echo "next command"
+
+    ##fi
+#############################
+
 }
+
+#GCP master node
+#gcp() {
+#    step_1
+#    step_2
+#    step_3
+#    step_4
+#    step_5
+#    step_6
+#    step_7
+#    step_8
+#    step_9
+#    step_10
+#    step_11
+#    step_12
+#    step_13
+#    gcp_init
+#    step_15
+#    install_configure_calico
+#    restart_containerd
+#    verify_calico
+#    verify_kubernetes_master
+#}
 
 ##### Function Install Worker Node #####
 worker() {
@@ -343,27 +411,6 @@ worker() {
     echo "Worker Node Installation Success..!!"
 }
 
-gcp() {
-    step_1
-    step_2
-    step_3
-    step_4
-    step_5
-    step_6
-    step_7
-    step_8
-    step_9
-    step_10
-    step_11
-    step_12
-    step_13
-    gcp_init
-    step_15
-    install_configure_calico
-    restart_containerd
-    verify_calico
-    verify_kubernetes_master
-}
 ##### Function Uninstalled Kubernetes Cluster #####
 remove() {
   echo "##### Kubernetes Uninstall Process.. #####"
@@ -433,7 +480,7 @@ show_help() {
     echo "Options:"
     echo "  -h, --help                  Show this help Message"
     echo "  -m, --master                Installing Kubernetes Master Node"
-    echo "  -g, --master (GCP)          Installing Kubernetes Master Node on GCP"
+    #echo "  -g, --master (GCP)          Installing Kubernetes Master Node on GCP"
     echo "  -w, --worker                Installing Kubernetes  Worker Node"
     echo "  -r, --remove                Completely Remove/uninstall Kubernetes"
     echo "  -d <arg>, --delete <arg>    Delete Worker Node. (requires worker node name as an arguments)"
