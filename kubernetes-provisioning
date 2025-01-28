@@ -54,6 +54,7 @@ oldsubnet="192.168.0.0/16"
 mysubnet="10.10.0.0/16"
 CURL_TIMEOUT=0.5
 
+
 step_1() {
     echo "########## Step 1 : Updating the System ##########"
     show_spinner 3
@@ -310,6 +311,14 @@ master() {
     if curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ >/dev/null 2>&1 ; then
         gcpip=$(curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
         gcp_init
+
+        #echo "use GCP ip : $gcpip" #>> Debuging
+        #sleep 1
+        #echo "gcp_init"
+    else
+        step_14
+        #echo "not use GCP"
+        #echo "step_14"
         
         ## Debuging Needs ##
         #echo "use GCP ip : $gcpip" 
@@ -332,6 +341,29 @@ master() {
     verify_kubernetes_master
 
 }
+
+#GCP master node
+#gcp() {
+#    step_1
+#    step_2
+#    step_3
+#    step_4
+#    step_5
+#    step_6
+#    step_7
+#    step_8
+#    step_9
+#    step_10
+#    step_11
+#    step_12
+#    step_13
+#    gcp_init
+#    step_15
+#    install_configure_calico
+#    restart_containerd
+#    verify_calico
+#    verify_kubernetes_master
+#}
 
 ##### Function Install Worker Node #####
 worker() {
@@ -421,6 +453,7 @@ show_help() {
     echo "Options:"
     echo "  -h, --help                  Show this help Message"
     echo "  -m, --master                Installing Kubernetes Master Node"
+    #echo "  -g, --master (GCP)          Installing Kubernetes Master Node on GCP"
     echo "  -w, --worker                Installing Kubernetes  Worker Node"
     echo "  -r, --remove                Completely Remove/uninstall Kubernetes"
     echo "  -d <arg>, --delete <arg>    Delete Worker Node. (requires worker node name as an arguments)"
