@@ -54,22 +54,6 @@ oldsubnet="192.168.0.0/16"
 mysubnet="10.10.0.0/16"
 CURL_TIMEOUT=0.5
 
-
-#Checking Cloud Environment
-#check_cloud_env() {
-#    ##GCP
-#    if curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ | grep -q "instance"; then
-#        #Retrive the External IP
-#        gcpip=$(curl -s -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) | awk -F'[a-zA-Z@:$ ]+' '{print $1}'
-#        echo "Run on GCP. GCP External IP : $gcpip"
-#    else
-#        gcpip="" 
-#    fi
-#}
-
-## call function check env
-#check_cloud_env
-
 step_1() {
     echo "########## Step 1 : Updating the System ##########"
     show_spinner 3
@@ -326,13 +310,19 @@ master() {
     if curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/ >/dev/null 2>&1 ; then
         gcpip=$(curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
         gcp_init
-        #echo "use GCP ip : $gcpip" #>> Debuging
+        
+        ## Debuging Needs ##
+        #echo "use GCP ip : $gcpip" 
         #sleep 1
         #echo "gcp_init"
+        ## ============== ##
     else
         step_14
+
+        ## Debuging Needs ##
         #echo "not use GCP"
         #echo "step_14"
+        ## ============ ##
     fi
 
     step_15
@@ -341,56 +331,7 @@ master() {
     verify_calico
     verify_kubernetes_master
 
-#TODO add waiting description to check environment
-   #echo "Checking environment..."
-   #show_spinner 2
-   #echo "next command"
-   ##check_gcp &
-   ##check_gcp_pid=$!
-
-   ##show_spinner 5 &
-   ##spinner_pid=$1
-   
-   ##if wait $check_gcp_pid; then
-        ##gcpip=$(curl -s --max-time $CURL_TIMEOUT -H "Metadata-Flavor: Google" http://169.254.169.254/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
-        ##if [[ -n $gcpip ]]; then
-            ##kill $spinner_pid  
-            ##echo "Use GCP IP : $gcpip"
-        ##else
-            ##echo "Error Can't retrive GCP Config"
-        ##fi
-    ##else
-        ##echo -e "\nNot running on GCP"
-        ##show_spinner 1
-        ##echo "next command"
-
-    ##fi
-#############################
-
 }
-
-#GCP master node
-#gcp() {
-#    step_1
-#    step_2
-#    step_3
-#    step_4
-#    step_5
-#    step_6
-#    step_7
-#    step_8
-#    step_9
-#    step_10
-#    step_11
-#    step_12
-#    step_13
-#    gcp_init
-#    step_15
-#    install_configure_calico
-#    restart_containerd
-#    verify_calico
-#    verify_kubernetes_master
-#}
 
 ##### Function Install Worker Node #####
 worker() {
