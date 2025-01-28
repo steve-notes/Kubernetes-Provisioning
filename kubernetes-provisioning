@@ -421,7 +421,6 @@ show_help() {
     echo "Options:"
     echo "  -h, --help                  Show this help Message"
     echo "  -m, --master                Installing Kubernetes Master Node"
-    #echo "  -g, --master (GCP)          Installing Kubernetes Master Node on GCP"
     echo "  -w, --worker                Installing Kubernetes  Worker Node"
     echo "  -r, --remove                Completely Remove/uninstall Kubernetes"
     echo "  -d <arg>, --delete <arg>    Delete Worker Node. (requires worker node name as an arguments)"
@@ -440,10 +439,6 @@ while [[ $# -gt 0 ]]; do
             ;;
         -m|--master)
             master
-            exit 0
-            ;;
-        -g|--gcp)
-            gcp
             exit 0
             ;;
         -w|--worker)
