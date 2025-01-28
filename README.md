@@ -1,5 +1,3 @@
-# Kubernetes Cluster Provisioning using Kubeadm &amp; Calico Operator.  :rocket:
-
 <p>
 This script I made is for my own purpose, so I can save time and be more efficient when I need to install a Kubernetes cluster.
 For now, this script only supports provisioning Kubernetes V1.29 and is supported only on Ubuntu 
@@ -11,7 +9,7 @@ So, if you want to try installing the same Kubernetes version and use an Ubuntu 
 <br/>
 <br/>
 
-📌 <b>ToDo for Next Update :</b> 
+📌 <b>Update :</b> 
 - [x] Join Installation & Uninstallation Script in one script only.
 - [x] Adding flag for options. 
 - [x] Adding function for provision Worker Node.
@@ -19,11 +17,13 @@ So, if you want to try installing the same Kubernetes version and use an Ubuntu 
 - [ ] Add file config for change subnet separated, so there's no need to change manually in main code.
 - [x] Adding function for kubeadm init based on environment ( local vm or cloud )
     - [x] GCP cloud
-- [ ] Adding function for install kubernetes version
+- [ ] Adding function for install other kubernetes version dynamically
 - [ ] Adding dynamic input subnet for kubeadm init and calico custom-resources.yaml
 - [ ] Add more Linux OS Support :
     - [x] Ubuntu
+    - [x] Debian
     - [ ] Centos
+- [x] Support Kubernetes v1.32
 
 <br/>
 <br/>
